@@ -1,0 +1,617 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "grest-belajar",
+    "description": "The grest-belajar allows you to perform all the operations that you do with our applications. grest-belajar is built using REST principles which ensures predictable URLs, uses standard HTTP response codes, authentication, and verbs that makes writing applications easy.\n\n## Query Params\n\ngrest-belajar support a common way for pagination, sorting, filtering, searching and other using URL query params on `GET` method.\n\n### Pagination\n\nYou can use the following query parameters for pagination :\n\n* `$page`: used to specify the page number to retrieve, default = 1.\n* `$per_page`: used to specify the number of items to retrieve per page, default = 10.\n* `$is_disable_pagination`: used to disable pagination and retrieve all items in one request, default = false.\nExample :\n```\nGET /contacts?$page=3\u0026$per_page=10\n```\n\n### Sorting\n\nYou can use the `$sort` query parameter for sorting.\n\n* Use the field name according to what you want to sort.\n* Use dot notation to sort by the field of the object.\n* You can specify multiple fields separated by commas.\n* Add `-` (minus sign) before the field name to sort in descending order.\n* Add `:i` after the field name to sort case-insensitively.\n\nThis is example if you want to retrieve product data sort by category name, then quantity on hand descending, then case-insensitive name descending :\n```\nGET /products?$sort=category.name,-quantity.on_hand,-name:i\n```\n\n### Filtering\n\nYou can use the field name for filtering the result set based on one or more conditions.\n\n* Use the field name according to what you want to filter.\n* Use dot notation to filter by the field of the object.\n* Use dot notation with `*` to filter by the field on array of the object. (TODO)\n* Use dot notation with `0` to filter by the field on array of the object and also hide non-matching arrays in the results. (TODO)\n* You can use the following operators for filtering :\n\nOperator  | Description               | Example\n----------|---------------------------|-----------------------------\nnone      | Equal to (Exact matches)  | `/contacts?gender=male`\n`$eq`     | Same as above             | `/contacts?gender.$eq=male`\n`$ne`     | Not equal to              | `/contacts?phone.$ne=null`\n`$gt`     | Greater than              | `/contacts?age.$gt=18`\n`$gte`    | Greater than or equal     | `/contacts?age.$gte=21`\n`$lt`     | Less than                 | `/contacts?age.$lt=17`\n`$lte`    | Less than or equal        | `/contacts?age.$lte=15`\n`$like`   | Like                      | `/contacts?name.$like=john%`\n`$nlike`  | Not like                  | `/contacts?name.$nlike=john%`\n`$ilike`  | Case-insensitive Like     | `/contacts?name.$ilike=john%`\n`$nilike` | Case-insensitive Not Like | `/contacts?name.$nilike=john%`\n`$in`     | In                        | `/contacts?age.$in=17,21,34`\n`$nin`    | Not in                    | `/contacts?age.$nin=17,21,34`\n\n### Conditional filtering\n\nYou can use the `$or` query parameter with `|` delimiter for conditional filtering.\n\nThis is example if you want to filter contact data with condition `(gender = 'female' or age \u003c 10) and (is_salesman = '1' or is_employee = '1')` :\n```\nGET /contacts?$or=gender:female|age.$lt:10\u0026$or=is_salesman:true|is_employee:true\n```\n\n### Searching\n\nYou can use the `$search` query parameter for searching.\n\nThis is example if you want to search contact data with code or name contain character \"john\" (case-insensitive) :\n```\nGET /contacts?$search=code,name:john\n```\n\n### Comparing\n\nYou can use the `$field` key for comparing one field to another field in the same record.\n\nThis is example if you want to filter product data with qty_on_order greater than qty_available :\n```\nGET /products?qty_on_order.$gt=$field:qty_available\n```\n\n### Selection\n\nYou can use the `$select` query parameter to retrieve specific fields in the response.\n\n* Use the field name according to what you want to retrieve.\n* Use dot notation to retrieve the field of the object.\n* You can specify multiple fields separated by commas, for example : `GET /contacts?$select=id,code,name,classification.name`.\n* By default, array fields are hidden on get list api for performance reason, you can use `$nclude` query parameter to retrieve the specific array field, for example : `/contacts?$include=families,friends,phones`. Example to retrieve all array field : `/contacts?$include=all`\n* You can use the following operator for aggregation :\n\nOperator | Description | Example                    \n---------|-------------|----------------------------\n`$count` | count       | `/products?$select=$count:id`\n`$sum`   | sum         | `/products?$select=$sum:sold`\n`$min`   | minimum     | `/products?$select=$min:sold`\n`$max`   | maximum     | `/products?$select=$max:sold`\n`$avg`   | average     | `/products?$select=$avg:sold`\n\n### Grouping\n\nYou can use the `$group` query parameter to grouping.\n\nExample :\n```\n/products?$group=category.id\u0026$select=category.id,$sum:sold\u0026$sort:-$sum:sold\n```\n",
+    "contact": {
+      "name": ""
+    },
+    "license": {
+      "name": ""
+    },
+    "version": "2024.03.260947"
+  },
+  "servers": [
+    {
+      "description": "Local",
+      "url": "http://localhost:4001"
+    }
+  ],
+  "paths": {
+    "/api/users": {
+      "post": {
+        "description": "Use this method to create User",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/headerParam.Accept-Language"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error.BadRequest"
+                }
+              }
+            },
+            "description": "A validation exception has occurred."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error.Unauthorized"
+                }
+              }
+            },
+            "description": "Invalid authorization credentials."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error.Forbidden"
+                }
+              }
+            },
+            "description": "User doesn't have permission to access the resource."
+          }
+        },
+        "summary": "Create User",
+        "tags": [
+          "User"
+        ]
+      },
+      "get": {
+        "description": "Use this method to get list of User",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/headerParam.Accept-Language"
+          },
+          {
+            "$ref": "#/components/parameters/queryParam.Any"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserList"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error.BadRequest"
+                }
+              }
+            },
+            "description": "A validation exception has occurred."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error.Unauthorized"
+                }
+              }
+            },
+            "description": "Invalid authorization credentials."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error.Forbidden"
+                }
+              }
+            },
+            "description": "User doesn't have permission to access the resource."
+          }
+        },
+        "summary": "Get User",
+        "tags": [
+          "User"
+        ]
+      }
+    },
+    "/api/users/{id}": {
+      "get": {
+        "description": "Use this method to get User by id",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/pathParam.ID"
+          },
+          {
+            "$ref": "#/components/parameters/headerParam.Accept-Language"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error.BadRequest"
+                }
+              }
+            },
+            "description": "A validation exception has occurred."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error.Unauthorized"
+                }
+              }
+            },
+            "description": "Invalid authorization credentials."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error.Forbidden"
+                }
+              }
+            },
+            "description": "User doesn't have permission to access the resource."
+          }
+        },
+        "summary": "Get User By ID",
+        "tags": [
+          "User"
+        ]
+      },
+      "put": {
+        "description": "Use this method to update User by id",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/pathParam.ID"
+          },
+          {
+            "$ref": "#/components/parameters/headerParam.Accept-Language"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error.BadRequest"
+                }
+              }
+            },
+            "description": "A validation exception has occurred."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error.Unauthorized"
+                }
+              }
+            },
+            "description": "Invalid authorization credentials."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error.Forbidden"
+                }
+              }
+            },
+            "description": "User doesn't have permission to access the resource."
+          }
+        },
+        "summary": "Update User By ID",
+        "tags": [
+          "User"
+        ]
+      },
+      "patch": {
+        "description": "Use this method to partially update User by id",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/pathParam.ID"
+          },
+          {
+            "$ref": "#/components/parameters/headerParam.Accept-Language"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error.BadRequest"
+                }
+              }
+            },
+            "description": "A validation exception has occurred."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error.Unauthorized"
+                }
+              }
+            },
+            "description": "Invalid authorization credentials."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error.Forbidden"
+                }
+              }
+            },
+            "description": "User doesn't have permission to access the resource."
+          }
+        },
+        "summary": "Partially Update User By ID",
+        "tags": [
+          "User"
+        ]
+      },
+      "delete": {
+        "description": "Use this method to delete User by id",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/pathParam.ID"
+          },
+          {
+            "$ref": "#/components/parameters/headerParam.Accept-Language"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error.BadRequest"
+                }
+              }
+            },
+            "description": "A validation exception has occurred."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error.Unauthorized"
+                }
+              }
+            },
+            "description": "Invalid authorization credentials."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error.Forbidden"
+                }
+              }
+            },
+            "description": "User doesn't have permission to access the resource."
+          }
+        },
+        "summary": "Delete User By ID",
+        "tags": [
+          "User"
+        ]
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "headerParam.Accept-Language": {
+        "in": "header",
+        "name": "Accept-Language",
+        "schema": {
+          "default": "en-US",
+          "enum": [
+            "en-US",
+            "en",
+            "id-ID",
+            "id"
+          ],
+          "type": "string"
+        }
+      },
+      "pathParam.ID": {
+        "description": "An ID of the resources",
+        "in": "path",
+        "name": "id",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "queryParam.Any": {
+        "explode": true,
+        "in": "query",
+        "name": "params",
+        "schema": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        }
+      }
+    },
+    "schemas": {
+      "Error.BadRequest": {
+        "properties": {
+          "error": {
+            "properties": {
+              "code": {
+                "example": 400,
+                "format": "int32",
+                "type": "integer"
+              },
+              "message": {
+                "example": "The request cannot be performed because of malformed or missing parameters.",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "Error.Forbidden": {
+        "properties": {
+          "error": {
+            "properties": {
+              "code": {
+                "example": 403,
+                "format": "int32",
+                "type": "integer"
+              },
+              "message": {
+                "example": "The user does not have permission to access the resource.",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "Error.Unauthorized": {
+        "properties": {
+          "error": {
+            "properties": {
+              "code": {
+                "example": 401,
+                "format": "int32",
+                "type": "integer"
+              },
+              "message": {
+                "example": "Invalid authentication token.",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "User": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "UserList": {
+        "properties": {
+          "count": {
+            "type": "integer"
+          },
+          "links": {
+            "properties": {
+              "first": {
+                "type": "string"
+              },
+              "last": {
+                "type": "string"
+              },
+              "next": {
+                "type": "string"
+              },
+              "previous": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "page_context": {
+            "properties": {
+              "page": {
+                "type": "integer"
+              },
+              "per_page": {
+                "type": "integer"
+              },
+              "total_pages": {
+                "type": "integer"
+              }
+            },
+            "type": "object"
+          },
+          "results": {
+            "items": {
+              "properties": {
+                "created_at": {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                "email": {
+                  "type": "string"
+                },
+                "id": {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "is_active": {
+                  "type": "boolean"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "password": {
+                  "type": "string"
+                },
+                "updated_at": {
+                  "format": "date-time",
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "bearerTokenAuth": {
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerTokenAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "User"
+    }
+  ],
+  "externalDocs": {
+    "url": ""
+  }
+}

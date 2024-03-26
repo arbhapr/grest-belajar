@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>API Documentation</title>
+  
+    <!-- <script src="https://unpkg.com/@stoplight/elements/web-components.min.js"></script> -->
+    <script src="docs/stoplight-elements-web-components.min.js"></script>
+    <!-- <link rel="stylesheet" href="https://unpkg.com/@stoplight/elements/styles.min.css"> -->
+    <link rel="stylesheet" href="docs/stoplight-elements-styles.min.css">
+    <style type="text/css">
+      .sl-ml-16 {
+        margin-left: 20px;
+      }
+      .sl-px-24 {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+    </style>
+  </head>
+  <body>
+
+    <elements-api
+      apiDescriptionUrl="/api/docs/openapi.json"
+      router="hash"
+      layout="sidebar"
+      hideSchemas=true
+    />
+
+  </body>
+</html>
