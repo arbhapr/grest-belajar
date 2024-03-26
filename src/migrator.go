@@ -3,6 +3,7 @@ package src
 import (
 	"grest-belajar/app"
 	"grest-belajar/src/category"
+	"grest-belajar/src/product"
 	"grest-belajar/src/user"
 	// import : DONT REMOVE THIS COMMENT
 )
@@ -28,7 +29,7 @@ type migratorUtil struct {
 func (*migratorUtil) Configure() {
 	app.DB().RegisterTable("main", user.User{})
 	app.DB().RegisterTable("main", category.Category{})
-	app.DB().RegisterTable("main", category.Category{})
+	app.DB().RegisterTable("main", product.Product{})
 	// RegisterTable : DONT REMOVE THIS COMMENT
 }
 

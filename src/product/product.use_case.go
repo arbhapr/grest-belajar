@@ -1,4 +1,4 @@
-package codegentemplate
+package product
 
 import (
 	"net/http"
@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"grest-belajar/app"
+	"grest-belajar/src/category"
 )
 
 // UseCase returns a UseCaseHandler for expected use case functional.
@@ -20,9 +21,9 @@ func UseCase(ctx app.Ctx, query ...url.Values) UseCaseHandler {
 	return u
 }
 
-// UseCaseHandler provides a convenient interface for CodeGenTemplate use case, use UseCase to access UseCaseHandler.
+// UseCaseHandler provides a convenient interface for Product use case, use UseCase to access UseCaseHandler.
 type UseCaseHandler struct {
-	CodeGenTemplate
+	Product
 
 	// injectable dependencies
 	Ctx   *app.Ctx   `json:"-" db:"-" gorm:"-"`
@@ -35,12 +36,12 @@ func (u UseCaseHandler) Async(ctx app.Ctx, query ...url.Values) UseCaseHandler {
 	return UseCase(ctx, query...)
 }
 
-// GetByID returns the CodeGenTemplate data for the specified ID.
-func (u UseCaseHandler) GetByID(id string) (CodeGenTemplate, error) {
-	res := CodeGenTemplate{}
+// GetByID returns the Product data for the specified ID.
+func (u UseCaseHandler) GetByID(id string) (Product, error) {
+	res := Product{}
 
 	// check permission
-	err := u.Ctx.ValidatePermission("end_point.detail")
+	err := u.Ctx.ValidatePermission("products.detail")
 	if err != nil {
 		return res, err
 	}
@@ -69,15 +70,17 @@ func (u UseCaseHandler) GetByID(id string) (CodeGenTemplate, error) {
 		return res, u.Ctx.NotFoundError(err, u.EndPoint(), key, id)
 	}
 
+	// save to cache and return if exists
+	app.Cache().Set(cacheKey, res)
 	return res, err
 }
 
-// Get returns the list of CodeGenTemplate data.
+// Get returns the list of Product data.
 func (u UseCaseHandler) Get() (app.ListModel, error) {
 	res := app.ListModel{}
 
 	// check permission
-	err := u.Ctx.ValidatePermission("end_point.list")
+	err := u.Ctx.ValidatePermission("products.list")
 	if err != nil {
 		return res, err
 	}
@@ -99,7 +102,7 @@ func (u UseCaseHandler) Get() (app.ListModel, error) {
 		res.PageContext.Page,
 		res.PageContext.PerPage,
 		res.PageContext.PageCount,
-		err = app.Query().PaginationInfo(tx, &CodeGenTemplate{}, u.Query)
+		err = app.Query().PaginationInfo(tx, &Product{}, u.Query)
 	if err != nil {
 		return res, app.Error().New(http.StatusInternalServerError, err.Error())
 	}
@@ -109,20 +112,22 @@ func (u UseCaseHandler) Get() (app.ListModel, error) {
 	}
 
 	// find data
-	data, err := app.Query().Find(tx, &CodeGenTemplate{}, u.Query)
+	data, err := app.Query().Find(tx, &Product{}, u.Query)
 	if err != nil {
 		return res, app.Error().New(http.StatusInternalServerError, err.Error())
 	}
 	res.SetData(data, u.Query)
 
+	// save to cache and return if exists
+	app.Cache().Set(cacheKey, res)
 	return res, err
 }
 
-// Create creates a new data CodeGenTemplate with specified parameters.
+// Create creates a new data Product with specified parameters.
 func (u UseCaseHandler) Create(p *ParamCreate) error {
 
 	// check permission
-	err := u.Ctx.ValidatePermission("end_point.create")
+	err := u.Ctx.ValidatePermission("products.create")
 	if err != nil {
 		return err
 	}
@@ -134,7 +139,7 @@ func (u UseCaseHandler) Create(p *ParamCreate) error {
 	}
 
 	// set default value for undefined field
-	err = p.setDefaultValue(CodeGenTemplate{})
+	err = p.setDefaultValue(Product{})
 	if err != nil {
 		return err
 	}
@@ -143,6 +148,13 @@ func (u UseCaseHandler) Create(p *ParamCreate) error {
 	tx, err := u.Ctx.DB()
 	if err != nil {
 		return app.Error().New(http.StatusInternalServerError, err.Error())
+	}
+
+	// check if category_id is not exist in categories table
+	var ctg category.Category
+	err = tx.Model(&category.Category{}).Where("id = ?", p.CategoryID).First(&ctg).Error
+	if err != nil {
+		return app.Error().New(http.StatusBadRequest, "category is not available")
 	}
 
 	// save data to db
@@ -150,15 +162,14 @@ func (u UseCaseHandler) Create(p *ParamCreate) error {
 	if err != nil {
 		return app.Error().New(http.StatusInternalServerError, err.Error())
 	}
-
 	return nil
 }
 
-// UpdateByID updates the CodeGenTemplate data for the specified ID with specified parameters.
+// UpdateByID updates the Product data for the specified ID with specified parameters.
 func (u UseCaseHandler) UpdateByID(id string, p *ParamUpdate) error {
 
 	// check permission
-	err := u.Ctx.ValidatePermission("end_point.edit")
+	err := u.Ctx.ValidatePermission("products.edit")
 	if err != nil {
 		return err
 	}
@@ -193,14 +204,19 @@ func (u UseCaseHandler) UpdateByID(id string, p *ParamUpdate) error {
 		return app.Error().New(http.StatusInternalServerError, err.Error())
 	}
 
+	// invalidate cache
+	app.Cache().Invalidate(u.EndPoint(), old.ID.String)
+
+	// save history (user activity), send webhook, etc
+	go u.Ctx.Hook("PUT", p.Reason.String, old.ID.String, old)
 	return nil
 }
 
-// PartiallyUpdateByID updates the CodeGenTemplate data for the specified ID with specified parameters.
+// PartiallyUpdateByID updates the Product data for the specified ID with specified parameters.
 func (u UseCaseHandler) PartiallyUpdateByID(id string, p *ParamPartiallyUpdate) error {
 
 	// check permission
-	err := u.Ctx.ValidatePermission("end_point.edit")
+	err := u.Ctx.ValidatePermission("products.edit")
 	if err != nil {
 		return err
 	}
@@ -235,14 +251,19 @@ func (u UseCaseHandler) PartiallyUpdateByID(id string, p *ParamPartiallyUpdate) 
 		return app.Error().New(http.StatusInternalServerError, err.Error())
 	}
 
+	// invalidate cache
+	app.Cache().Invalidate(u.EndPoint(), old.ID.String)
+
+	// save history (user activity), send webhook, etc
+	go u.Ctx.Hook("PATCH", p.Reason.String, old.ID.String, old)
 	return nil
 }
 
-// DeleteByID deletes the CodeGenTemplate data for the specified ID.
+// DeleteByID deletes the Product data for the specified ID.
 func (u UseCaseHandler) DeleteByID(id string, p *ParamDelete) error {
 
 	// check permission
-	err := u.Ctx.ValidatePermission("end_point.delete")
+	err := u.Ctx.ValidatePermission("products.delete")
 	if err != nil {
 		return err
 	}
@@ -271,11 +292,16 @@ func (u UseCaseHandler) DeleteByID(id string, p *ParamDelete) error {
 		return app.Error().New(http.StatusInternalServerError, err.Error())
 	}
 
+	// invalidate cache
+	app.Cache().Invalidate(u.EndPoint(), old.ID.String)
+
+	// save history (user activity), send webhook, etc
+	go u.Ctx.Hook("DELETE", p.Reason.String, old.ID.String, old)
 	return nil
 }
 
-// setDefaultValue set default value of undefined field when create or update CodeGenTemplate data.
-func (u *UseCaseHandler) setDefaultValue(old CodeGenTemplate) error {
+// setDefaultValue set default value of undefined field when create or update Product data.
+func (u *UseCaseHandler) setDefaultValue(old Product) error {
 	if !old.ID.Valid {
 		u.ID = app.NewNullUUID()
 	} else {

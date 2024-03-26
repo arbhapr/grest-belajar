@@ -7,6 +7,7 @@ type Category struct {
 	app.Model
 	ID        app.NullUUID      `json:"id"                   db:"m.id"              gorm:"column:id;primaryKey"`
 	Name      app.NullString    `json:"name"                 db:"m.name"            gorm:"column:name"`
+	Products  []Products        `json:"products"             db:"category_id={id}"  gorm:"-"`
 	CreatedAt app.NullDateTime  `json:"created_at"           db:"m.created_at"      gorm:"column:created_at"`
 	UpdatedAt app.NullDateTime  `json:"updated_at"           db:"m.updated_at"      gorm:"column:updated_at"`
 	DeletedAt *app.NullDateTime `json:"deleted_at,omitempty" db:"m.deleted_at,hide" gorm:"column:deleted_at"`
@@ -35,7 +36,7 @@ func (Category) TableAliasName() string {
 
 // GetRelations returns the relations of the Category data in the database, used for querying.
 func (m *Category) GetRelations() map[string]map[string]any {
-	// m.AddRelation("left", "users", "cu", []map[string]any{{"column1": "cu.id", "column2": "m.created_by_user_id"}})
+	// m.AddRelation("left", "products", "p", []map[string]any{{"column1": "p.category_id", "column2": "m.id"}})
 	// m.AddRelation("left", "users", "uu", []map[string]any{{"column1": "uu.id", "column2": "m.updated_by_user_id"}})
 	return m.Relations
 }
@@ -87,9 +88,45 @@ func (p *CategoryList) GetOpenAPISchema() map[string]any {
 	return p.SetOpenAPISchema(&Category{})
 }
 
+type Products struct {
+	app.Model
+	ID         app.NullInt64   `json:"id"          db:"p.id"          gorm:"column:id;primaryKey"`
+	CategoryID app.NullUUID    `json:"category_id" db:"p.category_id" gorm:"column:category_id"`
+	Name       app.NullString  `json:"name"        db:"p.name"        gorm:"column:name"`
+	Stock      app.NullInt64   `json:"stock"       db:"p.stock"       gorm:"column:stock"`
+	Price      app.NullFloat64 `json:"price"       db:"p.price"       gorm:"column:price"`
+}
+
+func (Products) TableName() string {
+	return "products"
+}
+
+func (Products) TableAliasName() string {
+	return "p"
+}
+
+func (o *Products) GetRelations() map[string]map[string]any {
+	return o.Relations
+}
+
+func (m *Products) GetFilters() []map[string]any {
+	m.AddFilter(map[string]any{"column1": "p.deleted_at", "operator": "=", "value": nil})
+	return m.Filters
+}
+
+func (o *Products) GetFields() map[string]map[string]any {
+	o.SetFields(o)
+	return o.Fields
+}
+
+func (o *Products) GetSchema() map[string]any {
+	return o.SetSchema(o)
+}
+
 // ParamCreate is the expected parameters for create a new Category data.
 type ParamCreate struct {
 	UseCaseHandler
+	Name app.NullString `json:"name" gorm:"column:name" validate:"required"`
 }
 
 // ParamUpdate is the expected parameters for update the Category data.
