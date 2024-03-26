@@ -47,27 +47,28 @@ func (list *ListModel) SetLink(c *fiber.Ctx) {
 	first.Del(grest.QueryPage)
 	first.Add(grest.QueryPage, "1")
 	firstQS, _ := url.QueryUnescape(first.Encode())
-	list.Links.First = c.BaseURL() + path + firstQS
+	list.Links.First = c.BaseURL() + path + "?" + firstQS
 
 	if list.PageContext.Page > 1 && list.PageContext.PageCount > 1 {
 		previous := q
 		previous.Set(grest.QueryPage, strconv.Itoa(int(list.PageContext.Page-1)))
 		previousQS, _ := url.QueryUnescape(previous.Encode())
-		list.Links.Previous = c.BaseURL() + path + previousQS
+		list.Links.Previous = c.BaseURL() + path + "?" + previousQS
 	}
 
 	if list.PageContext.Page < list.PageContext.PageCount {
 		next := q
 		next.Set(grest.QueryPage, strconv.Itoa(int(list.PageContext.Page+1)))
 		nextQS, _ := url.QueryUnescape(next.Encode())
-		list.Links.Next = c.BaseURL() + path + nextQS
+		list.Links.Next = c.BaseURL() + path + "?" + nextQS
 	}
 
 	last := q
 	last.Set(grest.QueryPage, strconv.Itoa(int(list.PageContext.PageCount)))
 	lastQS, _ := url.QueryUnescape(last.Encode())
-	list.Links.Last = c.BaseURL() + path + lastQS
+	list.Links.Last = c.BaseURL() + path + "?" + lastQS
 }
+
 func (list *ListModel) SetOpenAPISchema(m ModelInterface) map[string]any {
 	return map[string]any{
 		"type": "object",

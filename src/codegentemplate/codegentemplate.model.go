@@ -5,11 +5,11 @@ import "grest-belajar/app"
 // CodeGenTemplate is the main model of CodeGenTemplate data. It provides a convenient interface for app.ModelInterface
 type CodeGenTemplate struct {
 	app.Model
-	ID app.NullUUID `json:"id"         db:"m.id"              gorm:"column:id;primaryKey"`
+	ID app.NullUUID `json:"id"                   db:"m.id"              gorm:"column:id;primaryKey"`
 	// AddField : DONT REMOVE THIS COMMENT
-	CreatedAt app.NullDateTime `json:"created_at" db:"m.created_at"      gorm:"column:created_at"`
-	UpdatedAt app.NullDateTime `json:"updated_at" db:"m.updated_at"      gorm:"column:updated_at"`
-	DeletedAt app.NullDateTime `json:"deleted_at" db:"m.deleted_at,hide" gorm:"column:deleted_at"`
+	CreatedAt app.NullDateTime  `json:"created_at"           db:"m.created_at"      gorm:"column:created_at"`
+	UpdatedAt app.NullDateTime  `json:"updated_at"           db:"m.updated_at"      gorm:"column:updated_at"`
+	DeletedAt *app.NullDateTime `json:"deleted_at,omitempty" db:"m.deleted_at,hide" gorm:"column:deleted_at"`
 }
 
 // EndPoint returns the CodeGenTemplate end point, it used for cache key, etc.

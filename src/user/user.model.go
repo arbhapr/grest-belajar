@@ -5,14 +5,14 @@ import "grest-belajar/app"
 // User is the main model of User data. It provides a convenient interface for app.ModelInterface
 type User struct {
 	app.Model
-	ID        app.NullUUID     `json:"id"         db:"m.id"              gorm:"column:id;primaryKey"`
-	Email     app.NullString   `json:"email"      db:"m.email"           gorm:"column:email"`
-	Name      app.NullString   `json:"name"       db:"m.name"            gorm:"column:name"`
-	Password  app.NullString   `json:"password"   db:"m.password"        gorm:"column:password"`
-	IsActive  app.NullBool     `json:"is_active"  db:"m.is_active"       gorm:"column:is_active"`
-	CreatedAt app.NullDateTime `json:"created_at" db:"m.created_at"      gorm:"column:created_at"`
-	UpdatedAt app.NullDateTime `json:"updated_at" db:"m.updated_at"      gorm:"column:updated_at"`
-	DeletedAt app.NullDateTime `json:"deleted_at" db:"m.deleted_at,hide" gorm:"column:deleted_at"`
+	ID        app.NullUUID      `json:"id"                   db:"m.id"              gorm:"column:id;primaryKey"`
+	Name      app.NullString    `json:"name"                 db:"m.name"            gorm:"column:name"`
+	Email     app.NullString    `json:"email"                db:"m.email"           gorm:"column:email"`
+	Password  *app.NullString   `json:"password,omitempty"   db:"m.password,hide"   gorm:"column:password;min:6"`
+	Status    app.NullBool      `json:"status"               db:"m.status"          gorm:"column:status;default:1"`
+	CreatedAt app.NullDateTime  `json:"created_at"           db:"m.created_at"      gorm:"column:created_at"`
+	UpdatedAt app.NullDateTime  `json:"updated_at"           db:"m.updated_at"      gorm:"column:updated_at"`
+	DeletedAt *app.NullDateTime `json:"deleted_at,omitempty" db:"m.deleted_at,hide" gorm:"column:deleted_at"`
 }
 
 // EndPoint returns the User end point, it used for cache key, etc.
@@ -23,7 +23,7 @@ func (User) EndPoint() string {
 // TableVersion returns the versions of the User table in the database.
 // Change this value with date format YY.MM.DDHHii when any table structure changes.
 func (User) TableVersion() string {
-	return "28.06.291152"
+	return "24.03.261019"
 }
 
 // TableName returns the name of the User table in the database.
