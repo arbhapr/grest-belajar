@@ -93,6 +93,8 @@ func (p *UserList) GetOpenAPISchema() map[string]any {
 // ParamCreate is the expected parameters for create a new User data.
 type ParamCreate struct {
 	UseCaseHandler
+	Name  app.NullString `json:"name"  gorm:"column:name"  validate:"required,min=6"`
+	Email app.NullString `json:"email" gorm:"column:email" validate:"required"`
 }
 
 // ParamUpdate is the expected parameters for update the User data.
